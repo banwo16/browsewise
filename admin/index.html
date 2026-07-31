@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — BrowseWise</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>
+    (function () { try { var t = localStorage.getItem('browsewise-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+  </script>
+</head>
+<body>
+  <div class="admin-login-wrap">
+    <div class="admin-login-card">
+      <a href="../index.html" class="logo" aria-label="BrowseWise home">
+        <span class="logo-accent">Browse</span><span>Wise</span><span class="logo-dot">.</span>
+      </a>
+      <h1>Admin sign in</h1>
+      <p class="subtitle">Owner-only access. This area isn't linked from the storefront or indexed by search engines.</p>
+
+      <div id="notice-slot"></div>
+
+      <form id="login-form">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required autocomplete="current-password" autofocus>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block" id="login-btn">Sign in</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/admin-auth.js" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      AdminAuth.redirectIfAuthenticated('dashboard.html');
+
+      const form = document.getElementById('login-form');
+      const noticeSlot = document.getElementById('notice-slot');
+      const btn = document.getElementById('login-btn');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        noticeSlot.innerHTML = '';
+        btn.disabled = true;
+        btn.textContent = 'Signing in…';
+
+        const password = document.getElementById('password').value;
+        try {
+          await AdminAuth.login(password);
+          window.location.href = 'dashboard.html';
+        } catch (err) {
+          noticeSlot.innerHTML = `<div class="notice notice--error">${err.message}</div>`;
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

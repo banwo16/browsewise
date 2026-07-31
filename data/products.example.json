@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1,
+    "slug": "portable-blender",
+    "title": "Portable Blender",
+    "category": "Kitchen",
+    "price": "$24.99",
+    "image": "assets/images/blender.jpg",
+    "description": "USB rechargeable portable blender for smoothies on the go.",
+    "affiliate": "https://example.com/portable-blender",
+    "featured": true
+  },
+  {
+    "id": 2,
+    "slug": "wireless-earbuds-pro",
+    "title": "Wireless Earbuds Pro",
+    "category": "Electronics",
+    "price": "$39.99",
+    "image": "assets/images/earbuds.jpg",
+    "description": "Noise-cancelling wireless earbuds with 30-hour battery life.",
+    "affiliate": "https://example.com/wireless-earbuds-pro",
+    "featured": true
+  },
+  {
+    "id": 3,
+    "slug": "resistance-bands-set",
+    "title": "Resistance Bands Set",
+    "category": "Fitness",
+    "price": "$18.50",
+    "image": "assets/images/bands.jpg",
+    "description": "5-piece resistance band set for home workouts and stretching.",
+    "affiliate": "https://example.com/resistance-bands-set",
+    "featured": false
+  },
+  {
+    "id": 4,
+    "slug": "led-desk-lamp",
+    "title": "LED Desk Lamp",
+    "category": "Home",
+    "price": "$21.99",
+    "image": "assets/images/lamp.jpg",
+    "description": "Adjustable LED desk lamp with 3 brightness modes and USB charging port.",
+    "affiliate": "https://example.com/led-desk-lamp",
+    "featured": true
+  },
+  {
+    "id": 5,
+    "slug": "mechanical-keyboard-mini",
+    "title": "Mechanical Keyboard Mini",
+    "category": "Gaming",
+    "price": "$45.00",
+    "image": "assets/images/keyboard.jpg",
+    "description": "Compact 60% mechanical keyboard with RGB backlighting.",
+    "affiliate": "https://example.com/mechanical-keyboard-mini",
+    "featured": false
+  },
+  {
+    "id": 6,
+    "slug": "travel-organizer-pouch",
+    "title": "Travel Organizer Pouch Set",
+    "category": "Travel",
+    "price": "$16.99",
+    "image": "assets/images/pouch.jpg",
+    "description": "5-piece packing cube set to keep luggage tidy and organized.",
+    "affiliate": "https://example.com/travel-organizer-pouch",
+    "featured": false
+  }
+]

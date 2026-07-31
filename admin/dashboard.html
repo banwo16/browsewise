@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — BrowseWise Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>
+    (function () { try { var t = localStorage.getItem('browsewise-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+  </script>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="../index.html" class="logo" aria-label="BrowseWise home">
+        <span class="logo-accent">Browse</span><span>Wise</span><span class="logo-dot">.</span>
+      </a>
+      <nav class="admin-nav">
+        <a href="dashboard.html" class="is-active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Products
+        </a>
+        <a href="import.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Import Product
+        </a>
+        <a href="#" id="logout-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          Log out
+        </a>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <span class="eyebrow">CMS</span>
+          <h1>Products</h1>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <button class="btn btn--outline" id="manage-categories-btn">Manage Categories</button>
+          <button class="btn btn--primary" id="add-product-btn">+ Add Product</button>
+        </div>
+      </div>
+
+      <div class="stat-cards" id="stat-cards">
+        <div class="stat-card"><strong id="stat-total">–</strong><span>Total products</span></div>
+        <div class="stat-card"><strong id="stat-published">–</strong><span>Published</span></div>
+        <div class="stat-card"><strong id="stat-hidden">–</strong><span>Hidden</span></div>
+        <div class="stat-card"><strong id="stat-featured">–</strong><span>Featured</span></div>
+      </div>
+
+      <div id="notice-slot"></div>
+
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Updated</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="product-rows">
+            <tr><td colspan="7" style="text-align:center; padding: 32px;">Loading products…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add / Edit Product Modal -->
+  <div class="modal-overlay" id="product-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="close-product-modal" aria-label="Close">&times;</button>
+      <h2 id="modal-title">Add Product</h2>
+      <form id="product-form">
+        <input type="hidden" id="p-id">
+        <div class="form-grid">
+          <div class="form-group span-2">
+            <label for="p-title">Title *</label>
+            <input type="text" id="p-title" required>
+          </div>
+          <div class="form-group span-2">
+            <label for="p-description">Description</label>
+            <textarea id="p-description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="p-category">Category</label>
+            <select id="p-category"></select>
+          </div>
+          <div class="form-group">
+            <label for="p-brand">Brand</label>
+            <input type="text" id="p-brand">
+          </div>
+          <div class="form-group">
+            <label for="p-price">Price *</label>
+            <input type="text" id="p-price" placeholder="$24.99" required>
+          </div>
+          <div class="form-group">
+            <label for="p-oldPrice">Original Price</label>
+            <input type="text" id="p-oldPrice" placeholder="$34.99">
+          </div>
+          <div class="form-group span-2">
+            <label for="p-image">Image URL</label>
+            <input type="text" id="p-image" placeholder="assets/images/product.jpg">
+          </div>
+          <div class="form-group span-2">
+            <label for="p-affiliateUrl">Affiliate / Deal URL *</label>
+            <input type="url" id="p-affiliateUrl" required placeholder="https://…">
+          </div>
+          <div class="form-group span-2">
+            <label for="p-retailer">Retailer / Network</label>
+            <input type="text" id="p-retailer" placeholder="Amazon, AliExpress…">
+          </div>
+        </div>
+
+        <div class="form-actions" style="justify-content: flex-start; margin-top: 16px; gap: 20px;">
+          <label class="checkbox-row"><input type="checkbox" id="p-featured"> Featured</label>
+          <label class="checkbox-row"><input type="checkbox" id="p-published" checked> Published</label>
+        </div>
+
+        <div id="product-form-notice"></div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn--outline" id="cancel-product-form">Cancel</button>
+          <button type="submit" class="btn btn--primary" id="save-product-btn">Save Product</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Category Manager Modal -->
+  <div class="modal-overlay" id="category-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="close-category-modal" aria-label="Close">&times;</button>
+      <h2>Manage Categories</h2>
+      <div class="category-chip-list" id="category-chip-list"></div>
+      <form id="add-category-form" style="display:flex; gap:8px;">
+        <input type="text" id="new-category-input" placeholder="New category name" style="flex:1; padding:0.6rem 0.8rem; border-radius:6px; border:1px solid var(--color-border); background: var(--color-card-bg); color: var(--color-text);">
+        <button type="submit" class="btn btn--primary btn--sm">Add</button>
+      </form>
+      <p style="font-size:0.8rem; color: var(--color-text-muted); margin-top:12px;">
+        Removing a category here doesn't delete products already assigned to it — reassign them from the product edit form.
+      </p>
+    </div>
+  </div>
+
+  <script src="js/admin-auth.js" defer></script>
+  <script src="js/admin-api.js" defer></script>
+  <script src="js/admin-dashboard.js" defer></script>
+</body>
+</html>

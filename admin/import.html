@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Product — BrowseWise Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>
+    (function () { try { var t = localStorage.getItem('browsewise-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {} })();
+  </script>
+</head>
+<body>
+  <div class="admin-shell">
+    <aside class="admin-sidebar">
+      <a href="../index.html" class="logo" aria-label="BrowseWise home">
+        <span class="logo-accent">Browse</span><span>Wise</span><span class="logo-dot">.</span>
+      </a>
+      <nav class="admin-nav">
+        <a href="dashboard.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Products
+        </a>
+        <a href="import.html" class="is-active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          Import Product
+        </a>
+        <a href="#" id="logout-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+          Log out
+        </a>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <div class="admin-topbar">
+        <div>
+          <span class="eyebrow">CMS</span>
+          <h1>Import Product</h1>
+        </div>
+      </div>
+
+      <div class="wizard-steps">
+        <div class="wizard-step is-active" data-step="1"><span class="step-num"><span>1</span></span> Paste URL</div>
+        <div class="wizard-step" data-step="2"><span class="step-num"><span>2</span></span> Review &amp; edit</div>
+        <div class="wizard-step" data-step="3"><span class="step-num"><span>3</span></span> AI enhance</div>
+        <div class="wizard-step" data-step="4"><span class="step-num"><span>4</span></span> Publish</div>
+      </div>
+
+      <div id="notice-slot"></div>
+
+      <!-- Step 1: paste URL -->
+      <section class="import-card" id="step-1">
+        <h2 style="margin-bottom:8px;">Paste a product URL</h2>
+        <p style="margin-bottom:20px;">Amazon, AliExpress, eBay, CJ Affiliate, Impact, Awin links, or any retailer URL.</p>
+        <form id="url-form" style="display:flex; gap:12px; flex-wrap:wrap;">
+          <input type="url" id="product-url" required placeholder="https://www.amazon.com/dp/…" style="flex:1; min-width:260px; padding:0.7rem 1rem; border-radius:8px; border:1px solid var(--color-border); background: var(--color-card-bg); color: var(--color-text);">
+          <button type="submit" class="btn btn--primary" id="extract-btn">Fetch Product Data</button>
+        </form>
+      </section>
+
+      <!-- Step 2: review / edit extracted data -->
+      <section class="import-card" id="step-2" style="display:none; margin-top:24px;">
+        <h2 style="margin-bottom:16px;">Review extracted data</h2>
+        <div id="extract-notice"></div>
+
+        <div class="review-grid">
+          <div>
+            <img id="review-image" src="../assets/images/placeholder.svg" alt="Product image preview" onerror="this.src='../assets/images/placeholder.svg'">
+            <div class="form-group" style="margin-top:12px;">
+              <label for="f-image">Image URL</label>
+              <input type="text" id="f-image">
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group span-2">
+              <label for="f-title">Title *</label>
+              <input type="text" id="f-title" required>
+            </div>
+            <div class="form-group span-2">
+              <label for="f-description">Description (from source — will be rewritten by AI)</label>
+              <textarea id="f-description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="f-category">Category</label>
+              <select id="f-category"></select>
+            </div>
+            <div class="form-group">
+              <label for="f-brand">Brand</label>
+              <input type="text" id="f-brand">
+            </div>
+            <div class="form-group">
+              <label for="f-price">Price *</label>
+              <input type="text" id="f-price" required placeholder="$24.99">
+            </div>
+            <div class="form-group">
+              <label for="f-oldPrice">Original Price</label>
+              <input type="text" id="f-oldPrice">
+            </div>
+            <div class="form-group">
+              <label for="f-retailer">Retailer</label>
+              <input type="text" id="f-retailer">
+            </div>
+            <div class="form-group">
+              <label for="f-network">Affiliate Network</label>
+              <input type="text" id="f-network" readonly>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
+          <button type="button" class="btn btn--outline" id="back-to-step-1">&larr; Back</button>
+          <button type="button" class="btn btn--accent" id="ai-enhance-btn">✨ Enhance with AI</button>
+        </div>
+      </section>
+
+      <!-- Step 3: AI-enhanced preview -->
+      <section class="import-card" id="step-3" style="display:none; margin-top:24px;">
+        <h2 style="margin-bottom:16px;">AI-enhanced listing</h2>
+        <div id="ai-notice"></div>
+        <div id="ai-preview"></div>
+        <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
+          <button type="button" class="btn btn--outline" id="back-to-step-2">&larr; Edit details</button>
+          <div style="display:flex; gap:12px;">
+            <button type="button" class="btn btn--outline" id="skip-ai-btn">Skip AI, use raw data</button>
+            <button type="button" class="btn btn--primary" id="go-to-publish-btn">Continue to Publish &rarr;</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 4: final review & publish -->
+      <section class="import-card" id="step-4" style="display:none; margin-top:24px;">
+        <h2 style="margin-bottom:16px;">Final review</h2>
+        <div class="review-grid">
+          <img id="final-image" src="../assets/images/placeholder.svg" alt="" onerror="this.src='../assets/images/placeholder.svg'">
+          <div>
+            <h3 id="final-title" style="margin-bottom:8px;"></h3>
+            <p id="final-price" class="product-detail__price" style="font-size:1.4rem; margin: 4px 0 12px;"></p>
+            <p id="final-description" style="margin-bottom:16px;"></p>
+            <div class="checkbox-row" style="margin-bottom:8px;"><input type="checkbox" id="final-featured"> Mark as featured</div>
+            <div class="checkbox-row"><input type="checkbox" id="final-published" checked> Publish immediately</div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn--outline" id="cancel-import-btn">Cancel</button>
+          <button type="button" class="btn btn--outline" id="edit-import-btn">Edit</button>
+          <button type="button" class="btn btn--primary" id="save-import-btn">Save Product</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/admin-auth.js" defer></script>
+  <script src="js/admin-api.js" defer></script>
+  <script src="js/admin-import.js" defer></script>
+</body>
+</html>
