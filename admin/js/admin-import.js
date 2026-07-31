@@ -1,5 +1,5 @@
 /* ==========================================================================
-   admin-import.js — Drives the 4-step import wizard.
+   admin-import.js — Drives the 3-step import wizard (Paste → Review → Publish).
    ========================================================================== */
 
 (function () {
@@ -14,9 +14,15 @@
   }
   function clearNotice(slot) { slot.innerHTML = ''; }
 
-  let categories = [];
+  // Hardcoded fallback so the category dropdown is NEVER empty, even if the
+  // categories endpoint is slow, unreachable, or returns nothing.
+  const FALLBACK_CATEGORIES = [
+    'Electronics', 'Kitchen', 'Home', 'Fitness', 'Gaming',
+    'Fashion', 'Beauty', 'Pets', 'Travel', 'Gifts',
+  ];
+
+  let categories = FALLBACK_CATEGORIES;
   let draft = {}; // accumulates data across the wizard
-  let aiEnhancement = null;
 
   function setStep(n) {
     document.querySelectorAll('.wizard-step').forEach((el) => {
@@ -24,14 +30,15 @@
       el.classList.toggle('is-active', step === n);
       el.classList.toggle('is-done', step < n);
     });
-    ['step-1', 'step-2', 'step-3', 'step-4'].forEach((id, i) => {
+    ['step-1', 'step-2', 'step-3'].forEach((id, i) => {
       q(id).style.display = i + 1 === n ? 'block' : 'none';
     });
   }
 
   function populateCategorySelect(selectEl, selected) {
-    selectEl.innerHTML = categories.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
-    if (selected && categories.includes(selected)) selectEl.value = selected;
+    const list = categories && categories.length ? categories : FALLBACK_CATEGORIES;
+    selectEl.innerHTML = list.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    if (selected && list.includes(selected)) selectEl.value = selected;
   }
 
   /* ---------- Step 1: extract ---------- */
@@ -114,89 +121,13 @@
     draft.retailer = q('f-retailer').value.trim();
   }
 
-  /* ---------- Step 3: AI enhance ---------- */
+  /* ---------- Step 3: final review & save ---------- */
 
-  async function handleAiEnhance() {
-    collectStep2IntoDraft();
-    if (!draft.title || !draft.price) {
-      notice(q('notice-slot'), 'error', 'Title and price are required before enhancing.');
-      return;
-    }
-
-    const btn = q('ai-enhance-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Asking AI…';
-    clearNotice(q('ai-notice'));
-
-    try {
-      aiEnhancement = await AdminAPI.aiEnhance(draft);
-      renderAiPreview();
-      setStep(3);
-    } catch (err) {
-      notice(q('notice-slot'), 'error', escapeHtml(err.message) + ' — you can still continue with the raw data.');
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '✨ Enhance with AI';
-    }
-  }
-
-  function renderAiPreview() {
-    const e = aiEnhancement;
-    if (!e) {
-      q('ai-preview').innerHTML = '<p>No AI content yet.</p>';
-      return;
-    }
-    q('ai-preview').innerHTML = `
-      <div class="form-group" style="margin-bottom:16px;">
-        <label>SEO Title</label>
-        <p><strong>${escapeHtml(e.seoTitle || '')}</strong></p>
-      </div>
-      <div class="form-group" style="margin-bottom:16px;">
-        <label>SEO Description</label>
-        <p>${escapeHtml(e.seoDescription || '')}</p>
-      </div>
-      <div class="form-group" style="margin-bottom:16px;">
-        <label>Description</label>
-        <p>${escapeHtml(e.description || '')}</p>
-      </div>
-      <div class="form-group" style="margin-bottom:16px;">
-        <label>Key Features</label>
-        <ul style="margin-left:20px;">${(e.features || []).map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
-      </div>
-      <div class="form-grid" style="margin-bottom:16px;">
-        <div>
-          <label>Pros</label>
-          <ul style="margin-left:20px;">${(e.pros || []).map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
-        </div>
-        <div>
-          <label>Cons</label>
-          <ul style="margin-left:20px;">${(e.cons || []).map((f) => `<li>${escapeHtml(f)}</li>`).join('')}</ul>
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:16px;">
-        <label>FAQ</label>
-        ${(e.faq || []).map((f) => `<p><strong>${escapeHtml(f.q)}</strong><br>${escapeHtml(f.a)}</p>`).join('')}
-      </div>
-      <div class="form-group" style="margin-bottom:8px;">
-        <label>Keywords</label>
-        <div class="tag-list">${(e.keywords || []).map((k) => `<span class="tag">${escapeHtml(k)}</span>`).join('')}</div>
-      </div>
-      <p style="font-size:0.85rem; color:var(--color-text-muted);">
-        Suggested category: <strong>${escapeHtml(e.suggestedCategory || draft.category)}</strong>
-      </p>
-    `;
-  }
-
-  /* ---------- Step 4: final review & save ---------- */
-
-  function populateStep4() {
-    const title = aiEnhancement?.seoTitle || draft.title;
-    const description = aiEnhancement?.description || draft.description;
-
+  function populateStep3() {
     q('final-image').src = draft.image || '../assets/images/placeholder.svg';
-    q('final-title').textContent = title;
+    q('final-title').textContent = draft.title;
     q('final-price').textContent = draft.price;
-    q('final-description').textContent = description;
+    q('final-description').textContent = draft.description;
   }
 
   async function handleSaveProduct() {
@@ -205,10 +136,9 @@
     btn.textContent = 'Saving…';
 
     const payload = {
-      title: aiEnhancement?.seoTitle || draft.title,
-      description: aiEnhancement?.description || draft.description,
-      shortDescription: aiEnhancement?.shortDescription || '',
-      category: aiEnhancement?.suggestedCategory || draft.category,
+      title: draft.title,
+      description: draft.description,
+      category: draft.category,
       brand: draft.brand,
       price: draft.price,
       oldPrice: draft.oldPrice,
@@ -223,13 +153,6 @@
       availability: draft.availability || 'In Stock',
       featured: q('final-featured').checked,
       published: q('final-published').checked,
-      seoTitle: aiEnhancement?.seoTitle || '',
-      seoDescription: aiEnhancement?.seoDescription || '',
-      keywords: aiEnhancement?.keywords || [],
-      features: aiEnhancement?.features || [],
-      pros: aiEnhancement?.pros || [],
-      cons: aiEnhancement?.cons || [],
-      faq: aiEnhancement?.faq || [],
     };
 
     try {
@@ -244,7 +167,6 @@
 
   function resetWizard() {
     draft = {};
-    aiEnhancement = null;
     q('url-form').reset();
     setStep(1);
   }
@@ -261,26 +183,30 @@
       window.location.href = 'index.html';
     });
 
+    // Populate the category dropdown immediately with the fallback list so
+    // it's never empty, then try to replace it with the live list.
+    populateCategorySelect(q('f-category'));
     try {
-      categories = await AdminAPI.listCategories();
+      const fetched = await AdminAPI.listCategories();
+      if (fetched && fetched.length) {
+        categories = fetched;
+        populateCategorySelect(q('f-category'));
+      }
     } catch (e) {
-      categories = [];
+      // Keep using FALLBACK_CATEGORIES — dropdown already populated above.
     }
 
     q('url-form').addEventListener('submit', handleExtractSubmit);
     q('back-to-step-1').addEventListener('click', () => setStep(1));
-    q('ai-enhance-btn').addEventListener('click', handleAiEnhance);
 
-    q('back-to-step-2').addEventListener('click', () => setStep(2));
-    q('skip-ai-btn').addEventListener('click', () => {
-      collectStep2IntoDraft();
-      aiEnhancement = null;
-      populateStep4();
-      setStep(4);
-    });
     q('go-to-publish-btn').addEventListener('click', () => {
-      populateStep4();
-      setStep(4);
+      collectStep2IntoDraft();
+      if (!draft.title || !draft.price) {
+        notice(q('notice-slot'), 'error', 'Title and price are required before continuing.');
+        return;
+      }
+      populateStep3();
+      setStep(3);
     });
 
     q('edit-import-btn').addEventListener('click', () => setStep(2));
