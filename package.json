@@ -1,0 +1,13 @@
+{
+  "name": "browsewise",
+  "private": true,
+  "version": "1.0.0",
+  "description": "BrowseWise — static affiliate storefront with a lightweight Netlify Functions CMS.",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^7.2.0",
+    "cheerio": "^1.0.0"
+  }
+}
