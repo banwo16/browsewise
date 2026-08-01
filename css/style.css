@@ -541,6 +541,8 @@ p { color: var(--color-text-muted); }
   padding: 0.75rem var(--space-4);
   border-radius: var(--radius-md);
   border: none;
+  color: var(--color-text);
+  background-color: var(--color-white);
 }
 .newsletter-note {
   margin-top: var(--space-3);
