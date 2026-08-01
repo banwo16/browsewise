@@ -1,6 +1,6 @@
 /* ==========================================================================
    app.js — Global site behavior: nav toggle, dark mode, footer year,
-   newsletter form (UI only). Loaded on every page.
+   newsletter + contact forms (submitted live via Netlify Forms).
    ========================================================================== */
 
 (function () {
@@ -57,42 +57,89 @@
     if (el) el.textContent = new Date().getFullYear();
   }
 
-  /* ---------- Newsletter (UI only, no backend) ---------- */
+  /* ---------- Shared: submit a Netlify Form via AJAX (no page reload) ---------- */
+  function submitNetlifyForm(form) {
+    const body = new URLSearchParams(new FormData(form)).toString();
+    return fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body,
+    });
+  }
+
+  /* ---------- Newsletter — real submission via Netlify Forms ---------- */
   function initNewsletter() {
     const form = document.querySelector('.newsletter-form');
     if (!form) return;
 
+    const button = form.querySelector('button[type="submit"]');
+    const note = document.getElementById('newsletter-note');
+    const originalNote = note ? note.textContent : '';
+    const originalLabel = button ? button.textContent : 'Subscribe';
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const input = form.querySelector('input[type="email"]');
-      const button = form.querySelector('button');
       if (!input || !input.value) return;
 
-      const originalLabel = button.textContent;
-      button.textContent = 'Subscribed!';
       button.disabled = true;
-      input.value = '';
+      button.textContent = 'Subscribing…';
 
-      setTimeout(() => {
-        button.textContent = originalLabel;
-        button.disabled = false;
-      }, 2500);
+      submitNetlifyForm(form)
+        .then((res) => {
+          if (!res.ok) throw new Error('Submission failed');
+          button.textContent = 'Subscribed!';
+          input.value = '';
+          if (note) note.textContent = "You're on the list — thanks for subscribing!";
+        })
+        .catch(() => {
+          button.textContent = originalLabel;
+          button.disabled = false;
+          if (note) note.textContent = 'Something went wrong — please try again.';
+        })
+        .finally(() => {
+          setTimeout(() => {
+            button.disabled = false;
+            button.textContent = originalLabel;
+            if (note) note.textContent = originalNote;
+          }, 4000);
+        });
     });
   }
 
-  /* ---------- Contact form (UI only, no backend) ---------- */
+  /* ---------- Contact form — real submission via Netlify Forms ---------- */
   function initContactForm() {
     const form = document.querySelector('.contact-form');
     if (!form) return;
 
+    const status = document.getElementById('contact-status');
+    const button = form.querySelector('button[type="submit"]');
+    const originalLabel = button ? button.textContent : 'Send Message';
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const status = document.getElementById('contact-status');
-      form.reset();
-      if (status) {
-        status.textContent = "Thanks for reaching out! We'll get back to you soon.";
-        status.hidden = false;
-      }
+      button.disabled = true;
+      button.textContent = 'Sending…';
+
+      submitNetlifyForm(form)
+        .then((res) => {
+          if (!res.ok) throw new Error('Submission failed');
+          form.reset();
+          if (status) {
+            status.textContent = "Thanks for reaching out — we'll get back to you as soon as we can.";
+            status.hidden = false;
+          }
+        })
+        .catch(() => {
+          if (status) {
+            status.textContent = 'Something went wrong sending your message — please try again in a moment.';
+            status.hidden = false;
+          }
+        })
+        .finally(() => {
+          button.disabled = false;
+          button.textContent = originalLabel;
+        });
     });
   }
 
