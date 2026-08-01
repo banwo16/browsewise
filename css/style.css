@@ -542,7 +542,7 @@ p { color: var(--color-text-muted); }
   border-radius: var(--radius-md);
   border: none;
   color: var(--color-text);
-  background-color: var(--color-white);
+  background-color: var(--color-black);
 }
 .newsletter-note {
   margin-top: var(--space-3);
