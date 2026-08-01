@@ -544,6 +544,14 @@ p { color: var(--color-text-muted); }
   color: #1F2937;
   background-color: #FFFFFF;
 }
+.newsletter-form input:-webkit-autofill,
+.newsletter-form input:-webkit-autofill:hover,
+.newsletter-form input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1F2937;
+  -webkit-box-shadow: 0 0 0px 1000px #FFFFFF inset;
+  box-shadow: 0 0 0px 1000px #FFFFFF inset;
+  caret-color: #1F2937;
+}
 .newsletter-note {
   margin-top: var(--space-3);
   font-size: 0.8rem;
