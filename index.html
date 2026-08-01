@@ -157,12 +157,14 @@
       <div class="newsletter">
         <h2>Never miss a deal</h2>
         <p>Get the best new finds delivered to your inbox. No spam, unsubscribe any time.</p>
-        <form class="newsletter-form" aria-label="Newsletter signup">
+        <form name="newsletter" method="POST" data-netlify="true" netlify-honeypot="bot-field" class="newsletter-form" aria-label="Newsletter signup">
+          <input type="hidden" name="form-name" value="newsletter">
+          <p class="visually-hidden"><label>Leave this field blank: <input name="bot-field"></label></p>
           <label for="newsletter-email" class="visually-hidden">Email address</label>
-          <input type="email" id="newsletter-email" placeholder="you@email.com" required>
+          <input type="email" id="newsletter-email" name="email" placeholder="you@email.com" required>
           <button type="submit" class="btn btn--accent">Subscribe</button>
         </form>
-        <p class="newsletter-note">This is a UI preview — no emails are stored or sent yet.</p>
+        <p class="newsletter-note" id="newsletter-note">We'll only use your email for BrowseWise updates — no spam, unsubscribe any time.</p>
       </div>
     </section>
   </main>
