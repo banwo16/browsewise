@@ -46,8 +46,7 @@
       <div class="wizard-steps">
         <div class="wizard-step is-active" data-step="1"><span class="step-num"><span>1</span></span> Paste URL</div>
         <div class="wizard-step" data-step="2"><span class="step-num"><span>2</span></span> Review &amp; edit</div>
-        <div class="wizard-step" data-step="3"><span class="step-num"><span>3</span></span> AI enhance</div>
-        <div class="wizard-step" data-step="4"><span class="step-num"><span>4</span></span> Publish</div>
+        <div class="wizard-step" data-step="3"><span class="step-num"><span>3</span></span> Publish</div>
       </div>
 
       <div id="notice-slot"></div>
@@ -81,7 +80,7 @@
               <input type="text" id="f-title" required>
             </div>
             <div class="form-group span-2">
-              <label for="f-description">Description (from source — will be rewritten by AI)</label>
+              <label for="f-description">Description</label>
               <textarea id="f-description" rows="3"></textarea>
             </div>
             <div class="form-group">
@@ -94,7 +93,7 @@
             </div>
             <div class="form-group">
               <label for="f-price">Price *</label>
-              <input type="text" id="f-price" required placeholder="$24.99">
+              <input type="text" id="f-price" required placeholder="$24.99, 23.44, or 'Check price on site'">
             </div>
             <div class="form-group">
               <label for="f-oldPrice">Original Price</label>
@@ -113,29 +112,12 @@
 
         <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
           <button type="button" class="btn btn--outline" id="back-to-step-1">&larr; Back</button>
-          <div style="display:flex; gap:12px;">
-            <button type="button" class="btn btn--outline" id="skip-ai-step2-btn">Skip AI, continue with this data</button>
-            <button type="button" class="btn btn--accent" id="ai-enhance-btn">✨ Enhance with AI</button>
-          </div>
+          <button type="button" class="btn btn--primary" id="go-to-publish-btn">Continue to Publish &rarr;</button>
         </div>
       </section>
 
-      <!-- Step 3: AI-enhanced preview -->
+      <!-- Step 3: final review & publish -->
       <section class="import-card" id="step-3" style="display:none; margin-top:24px;">
-        <h2 style="margin-bottom:16px;">AI-enhanced listing</h2>
-        <div id="ai-notice"></div>
-        <div id="ai-preview"></div>
-        <div class="form-actions" style="justify-content: space-between; margin-top: 24px;">
-          <button type="button" class="btn btn--outline" id="back-to-step-2">&larr; Edit details</button>
-          <div style="display:flex; gap:12px;">
-            <button type="button" class="btn btn--outline" id="skip-ai-btn">Skip AI, use raw data</button>
-            <button type="button" class="btn btn--primary" id="go-to-publish-btn">Continue to Publish &rarr;</button>
-          </div>
-        </div>
-      </section>
-
-      <!-- Step 4: final review & publish -->
-      <section class="import-card" id="step-4" style="display:none; margin-top:24px;">
         <h2 style="margin-bottom:16px;">Final review</h2>
         <div class="review-grid">
           <img id="final-image" src="../assets/images/placeholder.svg" alt="" onerror="this.src='../assets/images/placeholder.svg'">
