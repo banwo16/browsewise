@@ -22,14 +22,27 @@ const DEFAULT_CATEGORIES = [
   'Fashion', 'Beauty', 'Pets', 'Travel', 'Gifts',
 ];
 
+/** Builds getStore() args. Uses explicit siteID/token if provided (needed on
+ *  some sites where Netlify's automatic Blobs context isn't injected —
+ *  e.g. sites originally created via drag-and-drop deploy). Falls back to
+ *  zero-config auto-detection otherwise. */
+function storeArgs(name) {
+  const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+  const token = process.env.NETLIFY_BLOBS_TOKEN;
+  if (siteID && token) {
+    return { name, siteID, token };
+  }
+  return name;
+}
+
 function productsStore() {
-  return getStore(PRODUCTS_STORE);
+  return getStore(storeArgs(PRODUCTS_STORE));
 }
 function metaStore() {
-  return getStore(META_STORE);
+  return getStore(storeArgs(META_STORE));
 }
 function analyticsStore() {
-  return getStore(ANALYTICS_STORE);
+  return getStore(storeArgs(ANALYTICS_STORE));
 }
 
 function slugify(text) {
