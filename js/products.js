@@ -117,6 +117,7 @@ function productCardHTML(product, basePath = '') {
       <div class="product-card__body">
         <h3 class="product-card__title"><a href="${href}">${escapeHtml(title)}</a></h3>
         <p class="product-card__desc">${escapeHtml(description)}</p>
+        <button type="button" class="product-card__see-more" hidden>See More</button>
         <div class="product-card__footer">
           <span class="product-card__price">${escapeHtml(price)}</span>
           <a class="btn btn--primary btn--sm view-deal-btn" href="${escapeHtml(affiliateHref)}"
@@ -127,6 +128,21 @@ function productCardHTML(product, basePath = '') {
         </div>
       </div>
     </article>`;
+}
+
+/** Shows the "See More" toggle only on cards where the description is
+ *  actually clamped/truncated — never on ones short enough to fit already. */
+function initDescriptionToggles(container) {
+  if (!container) return;
+  requestAnimationFrame(() => {
+    container.querySelectorAll('.product-card__desc').forEach((desc) => {
+      const btn = desc.nextElementSibling;
+      if (!btn || !btn.classList.contains('product-card__see-more')) return;
+      if (desc.scrollHeight > desc.clientHeight + 1) {
+        btn.hidden = false;
+      }
+    });
+  });
 }
 
 function renderGrid(container, products, basePath = '') {
@@ -140,6 +156,7 @@ function renderGrid(container, products, basePath = '') {
     return;
   }
   container.innerHTML = products.map((p) => productCardHTML(p, basePath)).join('');
+  initDescriptionToggles(container);
 }
 
 function renderCategoryGrid(container, categories) {
@@ -251,6 +268,28 @@ async function initProductsPage() {
   apply();
 }
 
+function buildProductShareUrl(product) {
+  return `${window.location.origin}/product.html?slug=${encodeURIComponent(product.slug)}`;
+}
+
+function shareWidgetHTML(product, variant = 'inline') {
+  const url = buildProductShareUrl(product);
+  return `
+    <div class="share-widget" data-share-title="${escapeHtml(product.title)}" data-share-url="${escapeHtml(url)}">
+      <button type="button" class="btn ${variant === 'bottom' ? 'btn--primary' : 'btn--outline'} share-toggle-btn" aria-haspopup="true" aria-expanded="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
+        Share
+      </button>
+      <div class="share-menu" hidden role="menu">
+        <button type="button" class="share-option" data-action="copy" role="menuitem">Copy Link</button>
+        <button type="button" class="share-option" data-action="twitter" role="menuitem">Share on X</button>
+        <button type="button" class="share-option" data-action="facebook" role="menuitem">Share on Facebook</button>
+        <button type="button" class="share-option" data-action="whatsapp" role="menuitem">Share on WhatsApp</button>
+        <button type="button" class="share-option" data-action="email" role="menuitem">Share via Email</button>
+      </div>
+    </div>`;
+}
+
 async function initProductDetailPage() {
   const container = document.getElementById('product-detail-container');
   const relatedGrid = document.getElementById('related-grid');
@@ -290,6 +329,7 @@ async function initProductDetailPage() {
           View Deal &rarr;
         </a>
         <a class="btn btn--outline" href="products.html">Back to Products</a>
+        ${shareWidgetHTML(product, 'inline')}
       </div>
       <p class="disclosure-note">
         This is an affiliate link. BrowseWise may earn a commission at no extra cost to you.
@@ -306,6 +346,20 @@ async function initProductDetailPage() {
     } else {
       relatedGrid.closest('.related-products')?.setAttribute('hidden', '');
     }
+  }
+
+  // Prominent share prompt at the end of the page
+  const relatedSection = document.querySelector('.related-products');
+  if (relatedSection && !document.getElementById('bottom-share-cta')) {
+    const cta = document.createElement('section');
+    cta.className = 'share-cta';
+    cta.id = 'bottom-share-cta';
+    cta.innerHTML = `
+      <h2>Found something you love?</h2>
+      <p>Share it with someone who'd love it too.</p>
+      ${shareWidgetHTML(product, 'bottom')}
+    `;
+    relatedSection.insertAdjacentElement('afterend', cta);
   }
 }
 
@@ -367,8 +421,94 @@ function initClickTracking() {
   });
 }
 
+/* ---------- "See More" description toggle ---------- */
+function initDescriptionToggleClicks() {
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.product-card__see-more');
+    if (!btn) return;
+    const desc = btn.previousElementSibling;
+    if (!desc || !desc.classList.contains('product-card__desc')) return;
+    const expanded = desc.classList.toggle('is-expanded');
+    btn.textContent = expanded ? 'See Less' : 'See More';
+  });
+}
+
+/* ---------- Share widget ----------
+   Uses the native share sheet where available (most mobile browsers);
+   falls back to a small dropdown with copy-link + social share links. */
+function handleShareAction(action, { url, title }, triggerBtn) {
+  switch (action) {
+    case 'copy':
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          if (triggerBtn) {
+            const original = triggerBtn.textContent;
+            triggerBtn.textContent = 'Copied!';
+            setTimeout(() => { triggerBtn.textContent = original; }, 1800);
+          }
+        }).catch(() => {});
+      }
+      break;
+    case 'twitter':
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank', 'noopener');
+      break;
+    case 'facebook':
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'noopener');
+      break;
+    case 'whatsapp':
+      window.open(`https://wa.me/?text=${encodeURIComponent(title + ' ' + url)}`, '_blank', 'noopener');
+      break;
+    case 'email':
+      window.location.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`;
+      break;
+  }
+}
+
+function initShareWidgets() {
+  document.addEventListener('click', (e) => {
+    const toggleBtn = e.target.closest('.share-toggle-btn');
+    if (toggleBtn) {
+      const widget = toggleBtn.closest('.share-widget');
+      const url = widget.dataset.shareUrl;
+      const title = widget.dataset.shareTitle;
+
+      if (navigator.share) {
+        navigator.share({ title, url }).catch(() => {});
+        return;
+      }
+
+      const menu = widget.querySelector('.share-menu');
+      const wasOpen = !menu.hidden;
+      document.querySelectorAll('.share-menu').forEach((m) => { m.hidden = true; });
+      document.querySelectorAll('.share-toggle-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+      menu.hidden = wasOpen;
+      toggleBtn.setAttribute('aria-expanded', String(!wasOpen));
+      return;
+    }
+
+    const optionBtn = e.target.closest('.share-option');
+    if (optionBtn) {
+      const widget = optionBtn.closest('.share-widget');
+      const url = widget.dataset.shareUrl;
+      const title = widget.dataset.shareTitle;
+      handleShareAction(optionBtn.dataset.action, { url, title }, optionBtn);
+      if (optionBtn.dataset.action !== 'copy') {
+        widget.querySelector('.share-menu').hidden = true;
+      }
+      return;
+    }
+
+    if (!e.target.closest('.share-widget')) {
+      document.querySelectorAll('.share-menu').forEach((m) => { m.hidden = true; });
+      document.querySelectorAll('.share-toggle-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initClickTracking();
+  initDescriptionToggleClicks();
+  initShareWidgets();
   if (document.body.dataset.page === 'home') initHomePage();
   if (document.body.dataset.page === 'products') initProductsPage();
   if (document.body.dataset.page === 'product') initProductDetailPage();
