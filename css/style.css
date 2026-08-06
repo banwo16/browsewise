@@ -448,8 +448,24 @@ p { color: var(--color-text-muted); }
 .product-card__desc {
   font-size: 0.85rem;
   color: var(--color-text-muted);
-  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
+.product-card__desc.is-expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+.product-card__see-more {
+  align-self: flex-start;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  padding: 0;
+  margin-top: -4px;
+}
+.product-card__see-more:hover { text-decoration: underline; }
 .product-card__footer {
   display: flex;
   align-items: center;
@@ -582,7 +598,7 @@ p { color: var(--color-text-muted); }
 .footer-col a:hover { color: var(--color-primary); }
 .footer-brand p { margin-top: var(--space-3); max-width: 32ch; font-size: 0.9rem; }
 
-.social-icons { display: flex; gap: var(--space-3); margin-top: var(--space-4); }
+.social-icons { display: none; gap: var(--space-3); margin-top: var(--space-4); } /* hidden until real social accounts exist — flip back to flex to re-enable */
 .social-icons a {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -705,6 +721,49 @@ p { color: var(--color-text-muted); }
   color: var(--color-primary);
   line-height: 1;
 }
+
+/* -------------------- Share widget -------------------- */
+.share-widget {
+  position: relative;
+  display: inline-block;
+}
+.share-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.share-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-2);
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+}
+.share-option {
+  text-align: left;
+  padding: 0.55rem var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+.share-option:hover { background-color: var(--color-bg-alt); }
+
+.share-cta {
+  text-align: center;
+  padding: var(--space-6);
+  background-color: var(--color-bg-alt);
+  border-radius: var(--radius-lg);
+  margin-top: var(--space-7);
+}
+.share-cta h2 { margin-bottom: var(--space-2); }
+.share-cta p { margin-bottom: var(--space-4); }
 
 /* -------------------- Related products -------------------- */
 .related-products { margin-top: var(--space-8); }
