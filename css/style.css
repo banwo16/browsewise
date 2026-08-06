@@ -746,8 +746,11 @@ p { color: var(--color-text-muted); }
   box-shadow: var(--shadow-lg);
   padding: var(--space-2);
   min-width: 180px;
-  display: flex;
+  display: none;
   flex-direction: column;
+}
+.share-menu:not([hidden]) {
+  display: flex;
 }
 .share-option {
   text-align: left;
