@@ -65,7 +65,24 @@ const ProductStore = (function () {
     return [...new Set(all.map((p) => p.category))];
   }
 
-  return { getAll, getFeatured, getLatest, getBySlug, getByCategory, getCategories };
+  /** Returns the previous/next product within the same category, using a
+   *  stable alphabetical order so adjacency doesn't shift just because a
+   *  product was edited (editing bumps updatedAt, which would otherwise
+   *  reorder things if we sorted by recency). */
+  async function getAdjacentInCategory(product) {
+    const all = await getAll();
+    const sameCategory = all
+      .filter((p) => p.category.toLowerCase() === product.category.toLowerCase())
+      .sort((a, b) => a.title.localeCompare(b.title));
+    const idx = sameCategory.findIndex((p) => p.id === product.id);
+    if (idx === -1) return { prev: null, next: null };
+    return {
+      prev: idx > 0 ? sameCategory[idx - 1] : null,
+      next: idx < sameCategory.length - 1 ? sameCategory[idx + 1] : null,
+    };
+  }
+
+  return { getAll, getFeatured, getLatest, getBySlug, getByCategory, getCategories, getAdjacentInCategory };
 })();
 
 /* ---------- Rendering helpers ---------- */
@@ -274,20 +291,55 @@ function buildProductShareUrl(product) {
 
 function shareWidgetHTML(product, variant = 'inline') {
   const url = buildProductShareUrl(product);
+  const title = product.title;
+  const text = product.shortDescription || product.description || '';
   return `
-    <div class="share-widget" data-share-title="${escapeHtml(product.title)}" data-share-url="${escapeHtml(url)}">
-      <button type="button" class="btn ${variant === 'bottom' ? 'btn--primary' : 'btn--outline'} share-toggle-btn" aria-haspopup="true" aria-expanded="false">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>
-        Share
-      </button>
-      <div class="share-menu" hidden role="menu">
-        <button type="button" class="share-option" data-action="copy" role="menuitem">Copy Link</button>
+    <div class="share-widget" data-share-title="${escapeHtml(title)}" data-share-url="${escapeHtml(url)}" data-share-text="${escapeHtml(text)}">
+      <div class="share-buttons">
+        <button type="button" class="btn ${variant === 'bottom' ? 'btn--primary' : 'btn--outline'} share-btn share-btn--share"
+                aria-haspopup="true" aria-expanded="false" aria-label="Share this product">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+          Share
+        </button>
+        <button type="button" class="btn btn--outline share-btn share-btn--copy" aria-label="Copy link to this product">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+          Copy Link
+        </button>
+      </div>
+      <div class="share-menu" hidden role="menu" aria-label="More sharing options">
         <button type="button" class="share-option" data-action="twitter" role="menuitem">Share on X</button>
         <button type="button" class="share-option" data-action="facebook" role="menuitem">Share on Facebook</button>
         <button type="button" class="share-option" data-action="whatsapp" role="menuitem">Share on WhatsApp</button>
         <button type="button" class="share-option" data-action="email" role="menuitem">Share via Email</button>
       </div>
     </div>`;
+}
+
+function prevNextNavHTML(product, prev, next) {
+  const chevronLeft = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>';
+  const chevronRight = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="9 18 15 12 9 6"/></svg>';
+
+  const prevContent = prev
+    ? `<a class="product-pager__link product-pager__link--prev" href="product.html?slug=${encodeURIComponent(prev.slug)}" aria-label="Previous product: ${escapeHtml(prev.title)}">
+         ${chevronLeft}<span>${escapeHtml(prev.title)}</span>
+       </a>`
+    : `<span class="product-pager__link product-pager__link--prev is-disabled" aria-disabled="true" aria-label="No previous product in this category">
+         ${chevronLeft}<span>Previous Product</span>
+       </span>`;
+
+  const nextContent = next
+    ? `<a class="product-pager__link product-pager__link--next" href="product.html?slug=${encodeURIComponent(next.slug)}" aria-label="Next product: ${escapeHtml(next.title)}">
+         <span>${escapeHtml(next.title)}</span>${chevronRight}
+       </a>`
+    : `<span class="product-pager__link product-pager__link--next is-disabled" aria-disabled="true" aria-label="No next product in this category">
+         <span>Next Product</span>${chevronRight}
+       </span>`;
+
+  return `
+    <nav class="product-pager" aria-label="More ${escapeHtml(product.category)} products">
+      ${prevContent}
+      ${nextContent}
+    </nav>`;
 }
 
 async function initProductDetailPage() {
@@ -338,6 +390,17 @@ async function initProductDetailPage() {
     </div>`;
 
   injectStructuredData(product);
+
+  // Previous / Next navigation within the same category, placed above
+  // "You might also like"
+  const relatedSectionEl = document.querySelector('.related-products');
+  if (relatedSectionEl && !document.getElementById('product-pager')) {
+    const { prev, next } = await ProductStore.getAdjacentInCategory(product);
+    const pagerWrapper = document.createElement('div');
+    pagerWrapper.id = 'product-pager';
+    pagerWrapper.innerHTML = prevNextNavHTML(product, prev, next);
+    relatedSectionEl.insertAdjacentElement('beforebegin', pagerWrapper);
+  }
 
   const related = (await ProductStore.getByCategory(product.category, product.id)).slice(0, 4);
   if (relatedGrid) {
@@ -434,21 +497,10 @@ function initDescriptionToggleClicks() {
 }
 
 /* ---------- Share widget ----------
-   Uses the native share sheet where available (most mobile browsers);
-   falls back to a small dropdown with copy-link + social share links. */
-function handleShareAction(action, { url, title }, triggerBtn) {
+   Two buttons: Share (native share sheet, falling back to a small dropdown
+   of social links) and Copy Link (always its own dedicated action). */
+function handleShareAction(action, { url, title }) {
   switch (action) {
-    case 'copy':
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-          if (triggerBtn) {
-            const original = triggerBtn.textContent;
-            triggerBtn.textContent = 'Copied!';
-            setTimeout(() => { triggerBtn.textContent = original; }, 1800);
-          }
-        }).catch(() => {});
-      }
-      break;
     case 'twitter':
       window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`, '_blank', 'noopener');
       break;
@@ -464,25 +516,68 @@ function handleShareAction(action, { url, title }, triggerBtn) {
   }
 }
 
+function showToast(message) {
+  let toast = document.getElementById('bw-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'bw-toast';
+    toast.className = 'toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  toast.classList.add('is-visible');
+  clearTimeout(toast._hideTimer);
+  toast._hideTimer = setTimeout(() => {
+    toast.classList.remove('is-visible');
+  }, 2200);
+}
+
+function copyLinkToClipboard(url) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url).then(() => {
+      showToast('Link copied!');
+    }).catch(() => {
+      showToast('Could not copy link');
+    });
+  } else {
+    showToast('Could not copy link');
+  }
+}
+
+function closeAllShareMenus() {
+  document.querySelectorAll('.share-menu').forEach((m) => { m.hidden = true; });
+  document.querySelectorAll('.share-btn--share').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+}
+
 function initShareWidgets() {
   document.addEventListener('click', (e) => {
-    const toggleBtn = e.target.closest('.share-toggle-btn');
-    if (toggleBtn) {
-      const widget = toggleBtn.closest('.share-widget');
+    const shareBtn = e.target.closest('.share-btn--share');
+    if (shareBtn) {
+      const widget = shareBtn.closest('.share-widget');
       const url = widget.dataset.shareUrl;
       const title = widget.dataset.shareTitle;
+      const text = widget.dataset.shareText;
 
       if (navigator.share) {
-        navigator.share({ title, url }).catch(() => {});
+        navigator.share({ title, text, url }).catch(() => {});
         return;
       }
 
+      // Fallback: toggle the social-links dropdown
       const menu = widget.querySelector('.share-menu');
       const wasOpen = !menu.hidden;
-      document.querySelectorAll('.share-menu').forEach((m) => { m.hidden = true; });
-      document.querySelectorAll('.share-toggle-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+      closeAllShareMenus();
       menu.hidden = wasOpen;
-      toggleBtn.setAttribute('aria-expanded', String(!wasOpen));
+      shareBtn.setAttribute('aria-expanded', String(!wasOpen));
+      return;
+    }
+
+    const copyBtn = e.target.closest('.share-btn--copy');
+    if (copyBtn) {
+      const widget = copyBtn.closest('.share-widget');
+      copyLinkToClipboard(widget.dataset.shareUrl);
       return;
     }
 
@@ -491,17 +586,18 @@ function initShareWidgets() {
       const widget = optionBtn.closest('.share-widget');
       const url = widget.dataset.shareUrl;
       const title = widget.dataset.shareTitle;
-      handleShareAction(optionBtn.dataset.action, { url, title }, optionBtn);
-      if (optionBtn.dataset.action !== 'copy') {
-        widget.querySelector('.share-menu').hidden = true;
-      }
+      handleShareAction(optionBtn.dataset.action, { url, title });
+      widget.querySelector('.share-menu').hidden = true;
       return;
     }
 
     if (!e.target.closest('.share-widget')) {
-      document.querySelectorAll('.share-menu').forEach((m) => { m.hidden = true; });
-      document.querySelectorAll('.share-toggle-btn').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+      closeAllShareMenus();
     }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllShareMenus();
   });
 }
 
