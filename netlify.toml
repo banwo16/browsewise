@@ -15,6 +15,11 @@
   to = "/.netlify/functions/sitemap"
   status = 200
 
+[[redirects]]
+  from = "/c/:id"
+  to = "/collection.html?id=:id"
+  status = 200
+
 [[headers]]
   for = "/*"
   [headers.values]
