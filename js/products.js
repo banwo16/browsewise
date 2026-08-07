@@ -133,7 +133,7 @@ function productCardHTML(product, basePath = '') {
         <img src="${imgSrc}" alt="${escapeHtml(title)}" loading="lazy" width="400" height="400"
              onerror="this.src='${basePath}assets/images/placeholder.svg'">
       </a>
-      <button type="button" class="product-card__wishlist-btn${isSaved ? ' is-saved' : ''}"
+      <button type="button" class="product-card__wishlist-btn wishlist-btn${isSaved ? ' is-saved' : ''}"
               data-product-slug="${escapeHtml(cardSlug)}"
               aria-label="${isSaved ? 'Remove from' : 'Save to'} wishlist" aria-pressed="${isSaved}">
         <svg viewBox="0 0 24 24" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
@@ -373,6 +373,7 @@ async function initProductDetailPage() {
   const absoluteImage = /^https?:\/\//i.test(product.image || '')
     ? product.image
     : `${window.location.origin}/${product.image || ''}`;
+   const detailIsSaved = typeof Wishlist !== 'undefined' && Wishlist.has(product.slug);
 
   setCanonical(productUrl);
   setMeta('description', shortDesc);
@@ -410,6 +411,11 @@ async function initProductDetailPage() {
            rel="noopener sponsored nofollow" data-product-id="${product.id}">
           View Deal &rarr;
         </a>
+       <button type="button" class="btn btn--outline wishlist-btn product-detail__wishlist-btn${detailIsSaved ? ' is-saved' : ''}"
+                data-product-slug="${escapeHtml(product.slug)}" aria-pressed="${detailIsSaved}">
+          <svg viewBox="0 0 24 24" fill="${detailIsSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+          <span>${detailIsSaved ? 'Saved' : 'Save to Wishlist'}</span>
+        </button>
         <a class="btn btn--outline" href="products.html">Back to Products</a>
         ${shareWidgetHTML(product, 'inline')}
       </div>
@@ -661,7 +667,7 @@ function initShareWidgets() {
 /* ---------- Wishlist heart button ---------- */
 function initWishlistButtons() {
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.product-card__wishlist-btn');
+    const btn = e.target.closest('.wishlist-btn');
     if (!btn || typeof Wishlist === 'undefined') return;
 
     const slug = btn.dataset.productSlug;
@@ -669,8 +675,16 @@ function initWishlistButtons() {
 
     btn.classList.toggle('is-saved', isSaved);
     btn.setAttribute('aria-pressed', String(isSaved));
-    btn.setAttribute('aria-label', isSaved ? 'Remove from wishlist' : 'Save to wishlist');
-    btn.querySelector('svg').setAttribute('fill', isSaved ? 'currentColor' : 'none');
+
+    const svg = btn.querySelector('svg');
+    if (svg) svg.setAttribute('fill', isSaved ? 'currentColor' : 'none');
+
+    const label = btn.querySelector('span');
+    if (label) {
+      label.textContent = isSaved ? 'Saved' : 'Save to Wishlist';
+    } else {
+      btn.setAttribute('aria-label', isSaved ? 'Remove from wishlist' : 'Save to wishlist');
+    }
   });
 }
 
