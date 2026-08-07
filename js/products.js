@@ -361,7 +361,30 @@ async function initProductDetailPage() {
   }
 
   document.title = `${product.title} — BrowseWise`;
-  setMeta('description', product.description);
+  const productUrl = buildProductShareUrl(product);
+  const shortDesc = product.shortDescription || product.description || '';
+  const absoluteImage = /^https?:\/\//i.test(product.image || '')
+    ? product.image
+    : `${window.location.origin}/${product.image || ''}`;
+
+  setCanonical(productUrl);
+  setMeta('description', shortDesc);
+  setMeta('og:url', productUrl);
+  setMeta('og:title', `${product.title} — BrowseWise`);
+  setMeta('og:description', shortDesc);
+  setMeta('og:image', absoluteImage);
+  setMeta('twitter:title', `${product.title} — BrowseWise`);
+  setMeta('twitter:description', shortDesc);
+  setMeta('twitter:image', absoluteImage);
+
+  const breadcrumbCategoryEl = document.getElementById('breadcrumb-category');
+  const breadcrumbCurrentEl = document.getElementById('breadcrumb-current');
+  if (breadcrumbCategoryEl) {
+    breadcrumbCategoryEl.innerHTML = `<a href="products.html?category=${encodeURIComponent(product.category)}">${escapeHtml(product.category)}</a> / `;
+  }
+  if (breadcrumbCurrentEl) {
+    breadcrumbCurrentEl.textContent = product.title;
+  }
 
   container.innerHTML = `
     <div class="product-detail__media">
@@ -436,15 +459,22 @@ function renderNotFound(container) {
     </div>`;
 }
 
-function setMeta(name, content) {
-  const el = document.querySelector(`meta[name="${name}"]`);
+function setMeta(nameOrProperty, content) {
+  const el =
+    document.querySelector(`meta[name="${nameOrProperty}"]`) ||
+    document.querySelector(`meta[property="${nameOrProperty}"]`);
   if (el) el.setAttribute('content', content);
 }
 
+function setCanonical(url) {
+  const el = document.querySelector('link[rel="canonical"]');
+  if (el) el.setAttribute('href', url);
+}
+
 function injectStructuredData(product) {
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.textContent = JSON.stringify({
+  const productScript = document.createElement('script');
+  productScript.type = 'application/ld+json';
+  productScript.textContent = JSON.stringify({
     '@context': 'https://schema.org/',
     '@type': 'Product',
     name: product.title,
@@ -454,12 +484,32 @@ function injectStructuredData(product) {
     offers: {
       '@type': 'Offer',
       price: String(product.price).replace(/[^0-9.]/g, ''),
-      priceCurrency: 'USD',
+      priceCurrency: 'CAD',
       url: product.affiliateUrl || product.affiliate,
       availability: 'https://schema.org/InStock',
     },
   });
-  document.head.appendChild(script);
+  document.head.appendChild(productScript);
+
+  const siteUrl = window.location.origin;
+  const breadcrumbScript = document.createElement('script');
+  breadcrumbScript.type = 'application/ld+json';
+  breadcrumbScript.textContent = JSON.stringify({
+    '@context': 'https://schema.org/',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${siteUrl}/` },
+      { '@type': 'ListItem', position: 2, name: 'Products', item: `${siteUrl}/products.html` },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: product.category,
+        item: `${siteUrl}/products.html?category=${encodeURIComponent(product.category)}`,
+      },
+      { '@type': 'ListItem', position: 4, name: product.title, item: buildProductShareUrl(product) },
+    ],
+  });
+  document.head.appendChild(breadcrumbScript);
 }
 
 /* ---------- Click tracking ----------
