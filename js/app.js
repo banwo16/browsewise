@@ -36,7 +36,7 @@
   function initTheme() {
     // Theme is applied early (inline script in <head>) to avoid flash;
     // here we just wire up the toggle button.
-    const toggleBtn = document.querySelector('.theme-toggle');
+    const toggleBtn = document.querySelector('button.theme-toggle');
     if (!toggleBtn) return;
 
     toggleBtn.addEventListener('click', () => {
