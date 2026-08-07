@@ -12,6 +12,7 @@ const store = require('../lib/store');
 const STATIC_PAGES = [
   { path: '/', changefreq: 'weekly', priority: '1.0' },
   { path: '/products.html', changefreq: 'daily', priority: '0.9' },
+  { path: '/quiz.html', changefreq: 'monthly', priority: '0.6' },
   { path: '/about.html', changefreq: 'monthly', priority: '0.5' },
   { path: '/contact.html', changefreq: 'monthly', priority: '0.5' },
   { path: '/privacy.html', changefreq: 'yearly', priority: '0.2' },
