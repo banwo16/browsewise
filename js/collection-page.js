@@ -19,6 +19,13 @@
     return match ? match[1] : null;
 }
 
+function getCollectionId() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('id')) return params.get('id');
+    const match = window.location.pathname.match(/\/c\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
+}
+
 async function init() {
     const id = getCollectionId();
     const grid = q('collection-grid');
