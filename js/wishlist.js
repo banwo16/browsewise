@@ -76,7 +76,11 @@ const Wishlist = (function () {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Could not create a shareable link right now.');
 
-    return `${window.location.origin}/collection.html?id=${encodeURIComponent(data.id)}`;
+    // Always builds the link on the canonical domain, never whatever domain
+    // happens to be in the address bar right now (e.g. the raw .netlify.app
+    // URL), and uses the short /c/ path instead of /collection.html?id=.
+    const SITE_URL = 'https://browsewise.ca';
+    return `${SITE_URL}/c/${encodeURIComponent(data.id)}`;
   }
 
   return { getAll, has, add, remove, toggle, clear, count, shareCurrentList };
