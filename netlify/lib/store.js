@@ -195,6 +195,42 @@ async function getAnalytics(productId) {
   };
 }
 
+/* ---------------- Newsletter subscribers ---------------- */
+
+const SUBSCRIBERS_STORE = 'browsewise-subscribers';
+function subscribersStore() {
+  return getStore(storeArgs(SUBSCRIBERS_STORE));
+}
+
+function normalizeEmail(email) {
+  return String(email).trim().toLowerCase();
+}
+
+/** Adds a subscriber (idempotent — subscribing twice is a no-op, not an error). */
+async function addSubscriber(email) {
+  const store = subscribersStore();
+  const key = `sub:${normalizeEmail(email)}`;
+  const existing = await store.get(key, { type: 'json' });
+  if (existing) return { existing: true, subscriber: existing };
+  const record = { email: normalizeEmail(email), subscribedAt: new Date().toISOString() };
+  await store.setJSON(key, record);
+  return { existing: false, subscriber: record };
+}
+
+/** Returns a flat array of subscriber email addresses. */
+async function listSubscribers() {
+  const store = subscribersStore();
+  const { blobs } = await store.list();
+  const records = await Promise.all(blobs.map((b) => store.get(b.key, { type: 'json' })));
+  return records.filter(Boolean).map((r) => r.email);
+}
+
+async function removeSubscriber(email) {
+  const store = subscribersStore();
+  await store.delete(`sub:${normalizeEmail(email)}`);
+  return true;
+}
+
 /* ---------------- Shared collections (wishlist share links) ---------------- */
 
 const COLLECTIONS_STORE = 'browsewise-collections';
