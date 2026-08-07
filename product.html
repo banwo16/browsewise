@@ -5,12 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Details — BrowseWise</title>
   <meta name="description" content="View product details, pricing, and the best deal link on BrowseWise.">
-  <link rel="canonical" href="https://www.browsewise.example/product.html">
+  <link rel="canonical" href="https://browsewise.ca/product.html">
 
   <meta property="og:type" content="product">
+  <meta property="og:url" content="https://browsewise.ca/product.html">
   <meta property="og:title" content="Product Details — BrowseWise">
   <meta property="og:description" content="View product details, pricing, and the best deal link on BrowseWise.">
+  <meta property="og:image" content="https://browsewise.ca/assets/images/og-image.jpg">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Product Details — BrowseWise">
+  <meta name="twitter:description" content="View product details, pricing, and the best deal link on BrowseWise.">
+  <meta name="twitter:image" content="https://browsewise.ca/assets/images/og-image.jpg">
 
   <link rel="icon" type="image/svg+xml" href="assets/icons/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -55,8 +60,8 @@
 
   <main id="main">
     <section class="section container">
-      <nav class="breadcrumbs" aria-label="Breadcrumb">
-        <a href="index.html">Home</a> / <a href="products.html">Products</a> / <span id="breadcrumb-current">Product</span>
+      <nav class="breadcrumbs" aria-label="Breadcrumb" id="breadcrumb-nav">
+        <a href="index.html">Home</a> / <a href="products.html">Products</a> / <span id="breadcrumb-category"></span><span id="breadcrumb-current">Product</span>
       </nav>
 
       <div class="product-detail" id="product-detail-container">
