@@ -195,6 +195,31 @@ async function getAnalytics(productId) {
   };
 }
 
+/* ---------------- Shared collections (wishlist share links) ---------------- */
+
+const COLLECTIONS_STORE = 'browsewise-collections';
+function collectionsStore() {
+  return getStore(storeArgs(COLLECTIONS_STORE));
+}
+
+function generateCollectionId() {
+  return Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 6);
+}
+
+/** Saves a snapshot of product slugs under a new short ID. Returns the ID. */
+async function saveCollection(slugs) {
+  const store = collectionsStore();
+  const clean = [...new Set(slugs)].filter((s) => typeof s === 'string' && s.length).slice(0, 50);
+  const id = generateCollectionId();
+  await store.setJSON(id, { slugs: clean, createdAt: new Date().toISOString() });
+  return id;
+}
+
+async function getCollection(id) {
+  const store = collectionsStore();
+  return store.get(id, { type: 'json' });
+}
+
 module.exports = {
   slugify,
   listProducts,
@@ -206,5 +231,10 @@ module.exports = {
   trackClick,
   trackConversion,
   getAnalytics,
+  addSubscriber,
+  listSubscribers,
+  removeSubscriber,
+  saveCollection,
+  getCollection,
   DEFAULT_CATEGORIES,
 };
