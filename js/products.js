@@ -124,6 +124,8 @@ function productCardHTML(product, basePath = '') {
   const affiliateHref = product.affiliateUrl || product.affiliate || '#';
   const imgSrc = /^https?:\/\//i.test(image || '') ? image : `${basePath}${image}`;
   const href = `${basePath}product.html?slug=${encodeURIComponent(slug || id)}`;
+  const cardSlug = slug || id;
+  const isSaved = typeof Wishlist !== 'undefined' && Wishlist.has(cardSlug);
   return `
     <article class="product-card">
       <a href="${href}" class="product-card__media" aria-label="View ${escapeHtml(title)} details">
@@ -131,6 +133,11 @@ function productCardHTML(product, basePath = '') {
         <img src="${imgSrc}" alt="${escapeHtml(title)}" loading="lazy" width="400" height="400"
              onerror="this.src='${basePath}assets/images/placeholder.svg'">
       </a>
+      <button type="button" class="product-card__wishlist-btn${isSaved ? ' is-saved' : ''}"
+              data-product-slug="${escapeHtml(cardSlug)}"
+              aria-label="${isSaved ? 'Remove from' : 'Save to'} wishlist" aria-pressed="${isSaved}">
+        <svg viewBox="0 0 24 24" fill="${isSaved ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg>
+      </button>
       <div class="product-card__body">
         <h3 class="product-card__title"><a href="${href}">${escapeHtml(title)}</a></h3>
         <p class="product-card__desc">${escapeHtml(description)}</p>
@@ -651,10 +658,27 @@ function initShareWidgets() {
   });
 }
 
+/* ---------- Wishlist heart button ---------- */
+function initWishlistButtons() {
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('.product-card__wishlist-btn');
+    if (!btn || typeof Wishlist === 'undefined') return;
+
+    const slug = btn.dataset.productSlug;
+    const isSaved = Wishlist.toggle(slug);
+
+    btn.classList.toggle('is-saved', isSaved);
+    btn.setAttribute('aria-pressed', String(isSaved));
+    btn.setAttribute('aria-label', isSaved ? 'Remove from wishlist' : 'Save to wishlist');
+    btn.querySelector('svg').setAttribute('fill', isSaved ? 'currentColor' : 'none');
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   initClickTracking();
   initDescriptionToggleClicks();
   initShareWidgets();
+  initWishlistButtons();
   if (document.body.dataset.page === 'home') initHomePage();
   if (document.body.dataset.page === 'products') initProductsPage();
   if (document.body.dataset.page === 'product') initProductDetailPage();
