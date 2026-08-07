@@ -392,6 +392,7 @@ p { color: var(--color-text-muted); }
 }
 
 .product-card {
+  position: relative;
   background-color: var(--color-card-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -433,6 +434,26 @@ p { color: var(--color-text-muted); }
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
+
+.product-card__wishlist-btn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 5;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--color-white);
+  color: var(--color-text-muted);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition), transform 0.15s ease;
+}
+.product-card__wishlist-btn svg { width: 17px; height: 17px; }
+.product-card__wishlist-btn:hover { color: #E11D48; transform: scale(1.08); }
+.product-card__wishlist-btn.is-saved { color: #E11D48; }
 
 .product-card__body {
   padding: var(--space-4);
@@ -939,6 +960,14 @@ p { color: var(--color-text-muted); }
 }
 .quiz-cta h2 { margin-bottom: var(--space-2); }
 .quiz-cta p { margin-bottom: var(--space-5); }
+
+/* -------------------- Wishlist -------------------- */
+.wishlist-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
 
 /* -------------------- Utility -------------------- */
 .text-center { text-align: center; }
