@@ -74,7 +74,7 @@ async function init() {
       notice('warn', 'Some items in this collection are no longer available and have been left out.');
     }
 
-    renderGrid(grid, products);
+    renderGrid(grid, products, '/');
     q('collection-cta').hidden = false;
   }
 
